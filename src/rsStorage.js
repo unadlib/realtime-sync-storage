@@ -2,6 +2,7 @@
 //     https://unadlib.github.io
 //     (c) 2016 unadlib, DocumentCloud and Investigative Reporters & Editors
 //     Underscore may be freely distributed under the MIT license.
+
 (function (global, doc, factory) {
 
     factory = factory(global, doc);
@@ -33,11 +34,11 @@
 
             config = {
 
-                interval: setting.interval || 0,
+                syncUrl: setting.syncUrl,
 
-                orgin: setting.orgin || global.location.host || '*',
+                delay: setting.delay || 0,
 
-                cross: setting.cross || '*'
+                orgin: global.location.host || '*',
 
             },
 
@@ -51,7 +52,17 @@
 
                         receiveLocalStorage = subDoc.createElement('iframe'),
 
-                        oldDom = subDoc.getElementById('receiveLocalStorage');
+                        oldDom = subDoc.getElementById('receiveLocalStorage'),
+
+                        postMessage = function(w,data){
+
+                            setTimeout(function(){
+
+                                w.postMessage(data, '*');
+
+                            },config.delay);
+
+                        };
 
                     for (var i in lS) {
 
@@ -60,7 +71,7 @@
                     }
                     if (oldDom){
 
-                         oldDom.contentWindow.postMessage(data, '*');
+                        postMessage(oldDom.contentWindow,data);
 
                         return after && after();
 
@@ -72,7 +83,7 @@
 
                     receiveLocalStorage.onload = function () {
 
-                        receiveLocalStorage.contentWindow.postMessage(data, '*');
+                        postMessage(receiveLocalStorage.contentWindow,data);
 
                         return after && after();
 
@@ -99,7 +110,7 @@
 
         var dom = frame.contentDocument;
 
-        dom.write("<script>var url='" + syncUrl + "';(" + frameScript.toString() + ")();</script>");
+        dom.write("<script>var url='" + config.syncUrl + "';(" + frameScript.toString() + ")();</script>");
 
         dom.close();
     };
