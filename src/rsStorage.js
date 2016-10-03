@@ -26,7 +26,7 @@
 
     var rsStorage;
 
-    rsStorage = function (setting,before,after) {
+    rsStorage = function (setting, before, after) {
 
         var frame = doc.createElement('iframe'),
 
@@ -54,13 +54,13 @@
 
                         oldDom = subDoc.getElementById('receiveLocalStorage'),
 
-                        postMessage = function(w,data){
+                        postMessage = function (w, data) {
 
-                            setTimeout(function(){
+                            setTimeout(function () {
 
                                 w.postMessage(data, '*');
 
-                            },config.delay);
+                            }, config.delay);
 
                         };
 
@@ -69,13 +69,13 @@
                         if (typeof lS[i] === "string") data[i] = lS[i];
 
                     }
-                    if (oldDom){
+                    if (oldDom) {
 
-                        postMessage(oldDom.contentWindow,data);
+                        postMessage(oldDom.contentWindow, data);
 
                         return after && after();
 
-                    };
+                    }
 
                     receiveLocalStorage.id = 'receiveLocalStorage';
 
@@ -83,7 +83,7 @@
 
                     receiveLocalStorage.onload = function () {
 
-                        postMessage(receiveLocalStorage.contentWindow,data);
+                        postMessage(receiveLocalStorage.contentWindow, data);
 
                         return after && after();
 
