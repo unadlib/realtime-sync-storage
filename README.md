@@ -16,7 +16,7 @@ npm install realtime-sync-storage --save
 Usage
 =====
 
-1. send source use
+* send source use
 
 ```javascript
 
@@ -36,7 +36,7 @@ rsStorage(
 );
 
 ```
-2. reception source add 'src/otherSite/syncStorage.html' file.
+* reception source add 'src/otherSite/syncStorage.html' file.
 
 ## License
 This project is licensed under the [MIT license](http://opensource.org/licenses/MIT).
