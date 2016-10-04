@@ -2,6 +2,7 @@
 Cross-origin local storage realtime synchronizing.
 ## Supported
 * IE(8+)
+
 ## Install
 #### [Bower](http://bower.io/search/?q=rsstorage)
 ```
