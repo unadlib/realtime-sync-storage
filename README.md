@@ -4,12 +4,12 @@ Cross-origin local storage realtime synchronizing.
 * IE(8+)
 
 ## Install
-#### [Bower](http://bower.io/search/?q=rsstorage)
+#### [Bower](http://bower.io/search/?q=realtime-sync-storage)
 ```
 bower install realtime-sync-storage --save
 ```
 
-#### [npm](https://www.npmjs.com/package/rsstorage)
+#### [npm](https://www.npmjs.com/package/realtime-sync-storage)
 ```
 npm install realtime-sync-storage --save
 ```
