@@ -1,21 +1,21 @@
 # realtime-sync-storage
-
+Cross-origin local storage realtime synchronizing.
 ## Supported
 * IE(8+)
 ## Install
 #### [Bower](http://bower.io/search/?q=rsstorage)
 ```
-bower install rsstorage
+bower install realtime-sync-storage --save
 ```
 
 #### [npm](https://www.npmjs.com/package/rsstorage)
 ```
-npm install rsstorage --save
+npm install realtime-sync-storage --save
 ```
 Usage
 =====
 
-### Require ngStorage and Inject the Services
+1. send source use
 
 ```javascript
 
@@ -35,5 +35,7 @@ rsStorage(
 );
 
 ```
+2. reception source add 'src/otherSite/syncStorage.html' file.
+
 ## License
 This project is licensed under the [MIT license](http://opensource.org/licenses/MIT).
