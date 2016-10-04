@@ -17,7 +17,7 @@
     "synchronizing"
   ],
   "author": "unadlib",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/unadlib/realtime-sync-storage/issues"
   },
