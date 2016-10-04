@@ -1,10 +1,12 @@
-//     rsStorage.js 1.0.0
+//     rsStorage.js 0.0.1
 //     https://unadlib.github.io
 //     (c) 2016 unadlib, DocumentCloud and Investigative Reporters & Editors
 //     Underscore may be freely distributed under the MIT license.
 
 (function (global, doc, factory) {
 
+    'use strict';
+    //support AMD/CMD
     factory = factory(global, doc);
 
     if (typeof global.define === 'function' && (define.amd || define.cmd)) {
@@ -26,80 +28,134 @@
 
     var rsStorage;
 
+    /**
+     *
+     * @param setting type object rsStorage configuration
+     * @param before type function before each synchronization
+     * @param after type function after each synchronization
+     */
+
     rsStorage = function (setting, before, after) {
+
+        try{
+            //the site's Synchronization URL of receive source must be set
+            typeof setting.url === "string";
+
+        }catch(e){
+
+            return console.error("The config of rsStorage has not been set or its setting is invalid.");
+
+        }
 
         var frame = doc.createElement('iframe'),
 
             setting = setting || {},
 
+            getOrigin = function(){
+                var a = document.createElement('a');
+                a.href = setting.url;
+                return a.origin;
+            },
+
             config = {
-
-                syncUrl: setting.syncUrl,
-
-                delay: setting.delay || 0,
-
-                orgin: global.location.host || '*',
+                //the site's Synchronization URL of receive source
+                url: setting.url,
+                //Sync field, not set to all sync
+                sync: setting.sync,
+                //Synchronization delay
+                delay: setting.delay !== void 0 &&  setting.delay !== null ? setting.delay : 0,
+                //Synchronous reception source
+                origin: getOrigin(),
+                //Synchronous send source
+                source: global.location.origin,
 
             },
 
-            frameScript = function () {
+            frameScript = function (config) {
 
-                var sendLocalStorage = function (lS) {
+                var subDoc = document,
 
-                    var data = {},
+                    syncTimer,
 
-                        subDoc = document,
+                    postMessage = function (w, lS, removeKey) {
 
-                        receiveLocalStorage = subDoc.createElement('iframe'),
+                        before && before();
 
-                        oldDom = subDoc.getElementById('receiveLocalStorage'),
+                        var data = {},
 
-                        postMessage = function (w, data) {
+                            transmit = function(){
+                                //postMessage to otherSite
+                                w.postMessage({localStorage:data,sync:config.sync,removeKey:removeKey,origin:config.source}, config.origin);
 
-                            setTimeout(function () {
+                                return after && after();
 
-                                w.postMessage(data, '*');
+                            };
 
-                            }, config.delay);
+                        for (var i in lS) {
+
+                            if (typeof lS[i] === "string") data[i] = lS[i];
+
+                        }
+
+
+                        if(config.delay === false){
+
+                            transmit();
+
+                        }else{
+
+                            setTimeout(transmit, config.delay);
+
+                        }
+
+                    },
+
+                    sendLocalStorage = function (lS,removeKey) {
+                        //Function throttling but removeItem key will be
+                        //syncTimer && clearTimeout(syncTimer);
+                        //
+                        //syncTimer = setTimeout(function(){
+                        //
+                        //    postMessage(subDoc.getElementById('receiveLocalStorage').contentWindow, lS);
+                        //
+                        //},0);
+                        postMessage(subDoc.getElementById('receiveLocalStorage').contentWindow, lS,removeKey);
+
+
+                    },
+
+                    init = function(lS){
+
+                        var receiveLocalStorage = subDoc.createElement('iframe');
+
+                        receiveLocalStorage.id = 'receiveLocalStorage';
+
+                        receiveLocalStorage.src = config.url;
+
+                        receiveLocalStorage.onload = function () {
+
+                            postMessage(receiveLocalStorage.contentWindow, lS);
+
 
                         };
+                        //Wait for blank page rendering to complete
+                        setTimeout(function(){
 
-                    for (var i in lS) {
+                            subDoc.body.appendChild(receiveLocalStorage);
 
-                        if (typeof lS[i] === "string") data[i] = lS[i];
-
-                    }
-                    if (oldDom) {
-
-                        postMessage(oldDom.contentWindow, data);
-
-                        return after && after();
-
-                    }
-
-                    receiveLocalStorage.id = 'receiveLocalStorage';
-
-                    receiveLocalStorage.src = url;
-
-                    receiveLocalStorage.onload = function () {
-
-                        postMessage(receiveLocalStorage.contentWindow, data);
-
-                        return after && after();
+                        },0);
 
                     };
 
-                    subDoc.body.appendChild(receiveLocalStorage);
-
-                };
-
                 window.addEventListener('storage', function (e) {
 
-                    before && before(e);
+                    sendLocalStorage(window.localStorage,e.newValue===null?e.key:void 0);
 
-                    sendLocalStorage(window.localStorage);
 
                 });
+
+                init(window.localStorage);
+
             };
 
         frame.style.display = 'none';
@@ -110,9 +166,10 @@
 
         var dom = frame.contentDocument;
 
-        dom.write("<script>var url='" + config.syncUrl + "';(" + frameScript.toString() + ")();</script>");
+        dom.write(['<script>var after =',after,',before =',before,';(',frameScript.toString(),')(',JSON.stringify(config),');</script>'].join(''));
 
         dom.close();
+
     };
 
     return rsStorage;

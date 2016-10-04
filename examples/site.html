@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>site</title>
+</head>
+<body>
+<input type="text" value="" id="testA">
+<input type="text" value="" id="testB">
+<button type="button" id="change">update</button>
+
+<script src="../src/rsStorage.js"></script>
+<script>
+    (function(){
+        var config = {
+                url:"http://othersite.com/src/otherSite/syncStorage.html",
+                delay:1000,
+                sync:['testA']
+            },
+            before = function() {
+                console.log('start:',+new Date(),window.localStorage);
+            },
+            after = function(){
+                console.log('end:',+new Date(),window.localStorage);
+            };
+
+        rsStorage(config,before,after);
+
+        document.getElementById('change').onclick = function(){
+            window.localStorage.setItem('testA',document.getElementById('testA').value);
+            window.localStorage.setItem('testB',document.getElementById('testB').value);
+
+        };
+    })()
+</script>
+</body>
+</html>

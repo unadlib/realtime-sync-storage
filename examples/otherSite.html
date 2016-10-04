@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>otherSite</title>
+</head>
+<body>
+<script>
+    (function(){
+        window.addEventListener('storage',function(e){
+            console.log(e,window.localStorage);
+        });
+    })();
+</script>
+</body>
+</html>
