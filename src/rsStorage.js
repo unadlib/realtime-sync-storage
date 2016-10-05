@@ -38,7 +38,7 @@
     rsStorage = function (setting, before, after) {
 
         try{
-            //the site's Synchronization URL of receive source must be set
+            //the site's Synchronization URL of slave source must be set
             typeof setting.url === "string";
 
         }catch(e){
@@ -58,15 +58,17 @@
             },
 
             config = {
-                //the site's Synchronization URL of receive source
+                //the site's Synchronization URL of slave source
                 url: setting.url,
                 //Sync field, not set to all sync
                 sync: setting.sync,
                 //Synchronization delay
-                delay: setting.delay !== void 0 &&  setting.delay !== null ? setting.delay : 0,
-                //Synchronous reception source
+                delay: ( setting.delay !== void 0 &&  setting.delay !== null ) || setting.delay === false  ? setting.delay : 0,
+                //Whether bidirectional synchronization
+                mutual: setting.mutual !== void 0 &&  setting.mutual !== null ? true : false,
+                //Synchronous slave source
                 origin: getOrigin(),
-                //Synchronous send source
+                //Synchronous master source
                 source: global.location.origin,
 
             },
@@ -74,8 +76,12 @@
             frameScript = function (config) {
 
                 var subDoc = document,
+                    
+                    lS = window.localStorage,
 
-                    syncTimer,
+                    isLimitKey = Object.prototype.toString.call(config.sync) === "[object Array]" && config.sync.length > 0,
+
+                    //syncTimer,
 
                     postMessage = function (w, lS, removeKey) {
 
@@ -85,7 +91,19 @@
 
                             transmit = function(){
                                 //postMessage to otherSite
-                                w.postMessage({localStorage:data,sync:config.sync,removeKey:removeKey,origin:config.source}, config.origin);
+                                w.postMessage({
+
+                                    localStorage:data,
+
+                                    sync:config.sync,
+
+                                    removeKey:removeKey,
+
+                                    origin:config.source,
+
+                                    mutual:config.mutual
+
+                                }, config.origin);
 
                                 return after && after();
 
@@ -124,6 +142,51 @@
 
                     },
 
+                    changeLocalStorage = function(data){
+
+                        for(var i in data){
+
+                            if(isLimitKey && config.sync.indexOf(i)===-1) continue;
+
+                            if(data[i]===null){
+
+                                lS.removeItem(i)
+
+                            }else{
+
+                                lS[i] = data[i]
+
+                            }
+
+                        }
+
+                    },
+
+                    receive = function(config){
+
+                        window.addEventListener('message',function(e){
+
+                            if(e.origin!==config.origin) return;
+
+                            if(config.delay === false){
+
+                                changeLocalStorage(e.data);
+
+                            }else{
+
+                                setTimeout(function(){
+
+                                    changeLocalStorage(e.data);
+
+                                }, config.delay);
+
+                            }
+
+
+                        })
+
+                    },
+
                     init = function(lS){
 
                         var receiveLocalStorage = subDoc.createElement('iframe');
@@ -135,6 +198,8 @@
                         receiveLocalStorage.onload = function () {
 
                             postMessage(receiveLocalStorage.contentWindow, lS);
+                            //receive slave site data
+                            receive(config);
 
 
                         };
@@ -146,15 +211,15 @@
                         },0);
 
                     };
-
+                //Monitor changes
                 window.addEventListener('storage', function (e) {
 
-                    sendLocalStorage(window.localStorage,e.newValue===null?e.key:void 0);
+                    sendLocalStorage(lS,e.newValue===null?e.key:void 0);
 
 
                 });
 
-                init(window.localStorage);
+                init(lS);
 
             };
 

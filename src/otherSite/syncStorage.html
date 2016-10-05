@@ -10,6 +10,7 @@
                 var data = e.data
                     d = data.localStorage,
                     keys = data.sync,
+                    origin = e.origin,
                     isLimitKey = Object.prototype.toString.call(keys) === "[object Array]" && keys.length > 0;
                 if (isLimitKey) {
                     for (var i = 0, j = keys.length; i < j; i++) {
@@ -26,6 +27,13 @@
                 }
                 data.removeKey && window.localStorage.removeItem(data.removeKey);
 
+                if(data.mutual){
+                    window.addEventListener('storage',function(e){
+                        var lS = {};
+                        lS[e.key] = e.newValue;
+                        window.parent.postMessage(lS,origin);
+                    });
+                }
             });
         };
     </script>

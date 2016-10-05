@@ -16,16 +16,18 @@ npm install realtime-sync-storage --save
 Usage
 =====
 
-* send source use
+* master source use
 
 ```javascript
 
 rsStorage(
     {
-        //the site's Synchronization URL of receive source
+        //the site's Synchronization URL of slave source
         url:"http://othersite.com/src/otherSite/syncStorage.html",
-        //Synchronization delay
+        //Synchronization delay(type Number or Boolean),default:false
         delay:1000,
+        //Whether bidirectional synchronization,default:false
+        mutual:true,
         //Sync field, not set to all sync
         sync:['testA']
     },function(){
@@ -36,7 +38,7 @@ rsStorage(
 );
 
 ```
-* reception source add 'src/otherSite/syncStorage.html' file.
+* slave source add 'src/otherSite/syncStorage.html' file.
 
 ## License
 This project is licensed under the [MIT license](http://opensource.org/licenses/MIT).
