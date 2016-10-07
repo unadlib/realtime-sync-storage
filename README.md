@@ -2,6 +2,7 @@
 Cross-origin local storage realtime synchronizing.
 ## Supported
 * IE(8+)
+* multi-site
 
 ## Install
 #### [Bower](http://bower.io/search/?q=realtime-sync-storage)
@@ -22,7 +23,7 @@ Usage
 
 rsStorage(
     {
-        //the site's Synchronization URL of slave source
+        //Single site is string, multi-site is array,the site's Synchronization URL of slave source(type String or Array)
         url:"http://othersite.com/src/otherSite/syncStorage.html",
         //Synchronization delay(type Number or Boolean),default:false
         delay:1000,

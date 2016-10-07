@@ -47,14 +47,44 @@
 
         }
 
-        var frame = doc.createElement('iframe'),
+        var getIsEffectArray = function(d){
+
+                return Object.prototype.toString.call(d) === "[object Array]" && d.length > 0
+
+            },
+
+            frame = doc.createElement('iframe'),
 
             setting = setting || {},
 
             getOrigin = function(){
-                var a = document.createElement('a');
-                a.href = setting.url;
-                return a.origin;
+
+                var url = setting.url,
+
+                    urls = [],
+
+                    getData = function(url) {
+
+                    var a = document.createElement('a');
+
+                    a.href = url;
+
+                    return a.origin;
+                }
+
+                if ( getIsEffectArray(url) ){
+
+                    for(var i = 0, j = url.length; i < j; i++ ){
+
+                        urls.push(getData(url[i]));
+
+                    }
+
+                    return urls;
+
+                }
+
+                return getData(url);
             },
 
             config = {
@@ -73,17 +103,21 @@
 
             },
 
+            lS = window.localStorage,
+
+            isLimitKey = getIsEffectArray(config.sync),
+
             frameScript = function (config) {
 
                 var subDoc = document,
                     
                     lS = window.localStorage,
 
-                    isLimitKey = Object.prototype.toString.call(config.sync) === "[object Array]" && config.sync.length > 0,
+                    isMultiple = Object.prototype.toString.call(config.url) === "[object Array]" && config.url.length > 0,
 
                     //syncTimer,
 
-                    postMessage = function (w, lS, removeKey) {
+                    postMessage = function (w, lS,config, removeKey) {
 
                         before && before();
 
@@ -137,28 +171,35 @@
                         //    postMessage(subDoc.getElementById('receiveLocalStorage').contentWindow, lS);
                         //
                         //},0);
-                        postMessage(subDoc.getElementById('receiveLocalStorage').contentWindow, lS,removeKey);
+                        var url = config.url;
+
+                        if ( isMultiple ) {
+
+                            for(var i = 0, j = url.length; i < j; i++ ){
+
+                                var conf = JSON.parse(JSON.stringify(config));
+
+                                conf.url = url[i];
+
+                                conf.origin = config.origin[i];
+
+                                postMessage(subDoc.getElementById('receiveLocalStorage'+i).contentWindow, lS,conf,removeKey);
+
+
+                            }
+
+                            return
+
+                        }
+
+                        postMessage(subDoc.getElementById('receiveLocalStorage').contentWindow, lS,config,removeKey);
 
 
                     },
 
-                    changeLocalStorage = function(data){
+                    callParent = function(data){
 
-                        for(var i in data){
-
-                            if(isLimitKey && config.sync.indexOf(i)===-1) continue;
-
-                            if(data[i]===null){
-
-                                lS.removeItem(i)
-
-                            }else{
-
-                                lS[i] = data[i]
-
-                            }
-
-                        }
+                        window.parent.postMessage({lS:data,type:'changeLocalStorage'},'*');
 
                     },
 
@@ -170,13 +211,13 @@
 
                             if(config.delay === false){
 
-                                changeLocalStorage(e.data);
+                                callParent(e.data);
 
                             }else{
 
                                 setTimeout(function(){
 
-                                    changeLocalStorage(e.data);
+                                    callParent(e.data);
 
                                 }, config.delay);
 
@@ -187,28 +228,54 @@
 
                     },
 
-                    init = function(lS){
+                    init = function(lS, config){
 
-                        var receiveLocalStorage = subDoc.createElement('iframe');
+                        var url = config.url,
 
-                        receiveLocalStorage.id = 'receiveLocalStorage';
+                            addSub = function(lS, config,i){
 
-                        receiveLocalStorage.src = config.url;
+                            var receiveLocalStorage = subDoc.createElement('iframe');
 
-                        receiveLocalStorage.onload = function () {
+                            receiveLocalStorage.id = 'receiveLocalStorage' + i||'';
 
-                            postMessage(receiveLocalStorage.contentWindow, lS);
-                            //receive slave site data
-                            receive(config);
+                            receiveLocalStorage.src = config.url;
 
+                            receiveLocalStorage.onload = function () {
+
+                                postMessage(receiveLocalStorage.contentWindow, lS,config);
+                                //receive slave site data
+                                receive(config);
+
+
+                            };
+                            //Wait for blank page rendering to complete
+                            setTimeout(function(){
+
+                                subDoc.body.appendChild(receiveLocalStorage);
+
+                            },0);
 
                         };
-                        //Wait for blank page rendering to complete
-                        setTimeout(function(){
 
-                            subDoc.body.appendChild(receiveLocalStorage);
 
-                        },0);
+
+                        if ( isMultiple ){
+
+                            for(var i = 0, j = url.length; i < j; i++ ){
+
+                                var conf = JSON.parse(JSON.stringify(config));
+
+                                conf.url = url[i];
+
+                                conf.origin = config.origin[i];
+
+                                addSub(lS, conf,i);
+
+                            }
+
+                            return
+                        }
+                        addSub(lS, config);
 
                     };
                 //Monitor changes
@@ -219,7 +286,39 @@
 
                 });
 
-                init(lS);
+                init(lS, config);
+
+            },
+
+            Listener = function(){
+
+                window.addEventListener('message',function(e){
+
+                    if(e.origin!==global.location.origin || e.data && e.data.type !== 'changeLocalStorage') return;
+
+                    changeLocalStorage(e.data.lS);
+
+                })
+
+            },
+
+            changeLocalStorage = function(data){
+
+                for(var i in data){
+
+                    if(isLimitKey && config.sync.indexOf(i)===-1) continue;
+
+                    if(data[i]===null){
+
+                        lS.removeItem(i)
+
+                    }else{
+
+                        lS[i] = data[i]
+
+                    }
+
+                }
 
             };
 
@@ -234,6 +333,8 @@
         dom.write(['<script>var after =',after,',before =',before,';(',frameScript.toString(),')(',JSON.stringify(config),');</script>'].join(''));
 
         dom.close();
+
+        config.mutual && Listener();
 
     };
 
