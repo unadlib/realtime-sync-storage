@@ -4,38 +4,42 @@
     <meta charset="UTF-8">
     <title>sync</title>
     <script>
-        window.onload = function () {
-            window.addEventListener('message', function (e) {
-                if (e.origin !== e.data.origin) return;
-                var data = e.data
-                    d = data.localStorage,
-                    keys = data.sync,
-                    origin = e.origin,
-                    isLimitKey = Object.prototype.toString.call(keys) === "[object Array]" && keys.length > 0;
-                if (isLimitKey) {
-                    for (var i = 0, j = keys.length; i < j; i++) {
-                        if (d[keys[i]] !== void 0 && d[keys[i]] !== null) {
-                            window.localStorage[keys[i]] = d[keys[i]];
-                        } else {
-                            window.localStorage.removeItem(keys[i]);
+        (function () {
+            'use strict';
+            var isListen = false;
+            window.onload = function () {
+                window.addEventListener('message', function (e) {
+                    if (e.origin !== e.data.origin) return;
+                    var data = e.data,
+                        d = data.localStorage,
+                        keys = data.sync,
+                        origin = e.origin,
+                        isLimitKey = Object.prototype.toString.call(keys) === "[object Array]" && keys.length > 0;
+                    if (isLimitKey) {
+                        for (var i = 0, j = keys.length; i < j; i++) {
+                            if (d[keys[i]] !== void 0 && d[keys[i]] !== null) {
+                                window.localStorage[keys[i]] = d[keys[i]];
+                            } else {
+                                window.localStorage.removeItem(keys[i]);
+                            }
+                        }
+                    } else {
+                        for (var key in d) {
+                            window.localStorage[key] = d[key];
                         }
                     }
-                } else {
-                    for (var key in d) {
-                        window.localStorage[key] = d[key];
+                    data.removeKey && window.localStorage.removeItem(data.removeKey);
+                    if (data.mutual && !isListen) {
+                        window.addEventListener('storage', function (e) {
+                            var lS = {};
+                            lS[e.key] = e.newValue;
+                            window.parent.postMessage(lS, origin);
+                        });
                     }
-                }
-                data.removeKey && window.localStorage.removeItem(data.removeKey);
-
-                if(data.mutual){
-                    window.addEventListener('storage',function(e){
-                        var lS = {};
-                        lS[e.key] = e.newValue;
-                        window.parent.postMessage(lS,origin);
-                    });
-                }
-            });
-        };
+                    isListen = true;
+                });
+            };
+        })();
     </script>
 </head>
 <body>
