@@ -37,17 +37,17 @@
 
     rsStorage = function (setting, before, after) {
 
-        try{
+        try {
             //the site's Synchronization URL of slave source must be set
             typeof setting.url === "string";
 
-        }catch(e){
+        } catch (e) {
 
             return console.error("The config of rsStorage has not been set or its setting is invalid.");
 
         }
 
-        var getIsEffectArray = function(d){
+        var getIsEffectArray = function (d) {
 
                 return Object.prototype.toString.call(d) === "[object Array]" && d.length > 0
 
@@ -57,24 +57,24 @@
 
             setting = setting || {},
 
-            getOrigin = function(){
+            getOrigin = function () {
 
                 var url = setting.url,
 
                     urls = [],
 
-                    getData = function(url) {
+                    getData = function (url) {
 
-                    var a = document.createElement('a');
+                        var a = document.createElement('a');
 
-                    a.href = url;
+                        a.href = url;
 
-                    return a.origin;
-                }
+                        return a.origin;
+                    }
 
-                if ( getIsEffectArray(url) ){
+                if (getIsEffectArray(url)) {
 
-                    for(var i = 0, j = url.length; i < j; i++ ){
+                    for (var i = 0, j = url.length; i < j; i++) {
 
                         urls.push(getData(url[i]));
 
@@ -93,9 +93,9 @@
                 //Sync field, not set to all sync
                 sync: setting.sync,
                 //Synchronization delay
-                delay: ( setting.delay !== void 0 &&  setting.delay !== null ) || setting.delay === false  ? setting.delay : 0,
+                delay: ( setting.delay !== void 0 && setting.delay !== null ) || setting.delay === false ? setting.delay : 0,
                 //Whether bidirectional synchronization
-                mutual: setting.mutual !== void 0 &&  setting.mutual !== null ? true : false,
+                mutual: setting.mutual !== void 0 && setting.mutual !== null ? true : false,
                 //Synchronous slave source
                 origin: getOrigin(),
                 //Synchronous master source
@@ -110,32 +110,32 @@
             frameScript = function (config) {
 
                 var subDoc = document,
-                    
+
                     lS = window.localStorage,
 
                     isMultiple = Object.prototype.toString.call(config.url) === "[object Array]" && config.url.length > 0,
 
                     //syncTimer,
 
-                    postMessage = function (w, lS,config, removeKey) {
+                    postMessage = function (w, lS, config, removeKey) {
 
                         before && before();
 
                         var data = {},
 
-                            transmit = function(){
+                            transmit = function () {
                                 //postMessage to otherSite
                                 w.postMessage({
 
-                                    localStorage:data,
+                                    localStorage: data,
 
-                                    sync:config.sync,
+                                    sync: config.sync,
 
-                                    removeKey:removeKey,
+                                    removeKey: removeKey,
 
-                                    origin:config.source,
+                                    origin: config.source,
 
-                                    mutual:config.mutual
+                                    mutual: config.mutual
 
                                 }, config.origin);
 
@@ -150,11 +150,11 @@
                         }
 
 
-                        if(config.delay === false){
+                        if (config.delay === false) {
 
                             transmit();
 
-                        }else{
+                        } else {
 
                             setTimeout(transmit, config.delay);
 
@@ -162,7 +162,7 @@
 
                     },
 
-                    sendLocalStorage = function (lS,removeKey) {
+                    sendLocalStorage = function (lS, removeKey) {
                         //Function throttling but removeItem key will be
                         //syncTimer && clearTimeout(syncTimer);
                         //
@@ -171,51 +171,57 @@
                         //    postMessage(subDoc.getElementById('receiveLocalStorage').contentWindow, lS);
                         //
                         //},0);
-                        var url = config.url;
 
-                        if ( isMultiple ) {
+                        if (isMultiple) {
 
-                            for(var i = 0, j = url.length; i < j; i++ ){
+                            return mapUrls(config, function (conf, i) {
 
-                                var conf = JSON.parse(JSON.stringify(config));
+                                postMessage(subDoc.getElementById('receiveLocalStorage' + i).contentWindow, lS, conf, removeKey);
 
-                                conf.url = url[i];
-
-                                conf.origin = config.origin[i];
-
-                                postMessage(subDoc.getElementById('receiveLocalStorage'+i).contentWindow, lS,conf,removeKey);
-
-
-                            }
-
-                            return
+                            });
 
                         }
 
-                        postMessage(subDoc.getElementById('receiveLocalStorage').contentWindow, lS,config,removeKey);
+                        postMessage(subDoc.getElementById('receiveLocalStorage').contentWindow, lS, config, removeKey);
 
 
                     },
 
-                    callParent = function(data){
+                    mapUrls = function (config, fn) {
 
-                        window.parent.postMessage({lS:data,type:'changeLocalStorage'},'*');
+                        for (var i = 0, url = config.url, j = url.length; i < j; i++) {
+
+                            var conf = JSON.parse(JSON.stringify(config));
+
+                            conf.url = url[i];
+
+                            conf.origin = config.origin[i];
+
+                            fn(conf, i);
+
+                        }
+
+                    }
+
+                    callParent = function (data) {
+
+                        window.parent.postMessage({lS: data, type: 'changeLocalStorage'}, '*');
 
                     },
 
-                    receive = function(config){
+                    receive = function (config) {
 
-                        window.addEventListener('message',function(e){
+                        window.addEventListener('message', function (e) {
 
-                            if(e.origin!==config.origin) return;
+                            if (e.origin !== config.origin) return;
 
-                            if(config.delay === false){
+                            if (config.delay === false) {
 
                                 callParent(e.data);
 
-                            }else{
+                            } else {
 
-                                setTimeout(function(){
+                                setTimeout(function () {
 
                                     callParent(e.data);
 
@@ -228,60 +234,51 @@
 
                     },
 
-                    init = function(lS, config){
+                    init = function (lS, config) {
 
-                        var url = config.url,
-
-                            addSub = function(lS, config,i){
+                        var addSub = function (lS, config, i) {
 
                             var receiveLocalStorage = subDoc.createElement('iframe');
 
-                            receiveLocalStorage.id = 'receiveLocalStorage' + i||'';
+                            receiveLocalStorage.id = 'receiveLocalStorage' + i || '';
 
                             receiveLocalStorage.src = config.url;
 
                             receiveLocalStorage.onload = function () {
 
-                                postMessage(receiveLocalStorage.contentWindow, lS,config);
+                                postMessage(receiveLocalStorage.contentWindow, lS, config);
                                 //receive slave site data
                                 receive(config);
 
 
                             };
                             //Wait for blank page rendering to complete
-                            setTimeout(function(){
+                            setTimeout(function () {
 
                                 subDoc.body.appendChild(receiveLocalStorage);
 
-                            },0);
+                            }, 0);
 
                         };
 
 
+                        if (isMultiple) {
 
-                        if ( isMultiple ){
+                            return mapUrls(config, function (conf, i) {
 
-                            for(var i = 0, j = url.length; i < j; i++ ){
+                                addSub(lS, conf, i);
 
-                                var conf = JSON.parse(JSON.stringify(config));
+                            });
 
-                                conf.url = url[i];
-
-                                conf.origin = config.origin[i];
-
-                                addSub(lS, conf,i);
-
-                            }
-
-                            return
                         }
+
                         addSub(lS, config);
 
                     };
                 //Monitor changes
                 window.addEventListener('storage', function (e) {
 
-                    sendLocalStorage(lS,e.newValue===null?e.key:void 0);
+                    sendLocalStorage(lS, e.newValue === null ? e.key : void 0);
 
 
                 });
@@ -290,11 +287,11 @@
 
             },
 
-            Listener = function(){
+            Listener = function () {
 
-                window.addEventListener('message',function(e){
+                window.addEventListener('message', function (e) {
 
-                    if(e.origin!==global.location.origin || e.data && e.data.type !== 'changeLocalStorage') return;
+                    if (e.origin !== global.location.origin || e.data && e.data.type !== 'changeLocalStorage') return;
 
                     changeLocalStorage(e.data.lS);
 
@@ -302,17 +299,17 @@
 
             },
 
-            changeLocalStorage = function(data){
+            changeLocalStorage = function (data) {
 
-                for(var i in data){
+                for (var i in data) {
 
-                    if(isLimitKey && config.sync.indexOf(i)===-1) continue;
+                    if (isLimitKey && config.sync.indexOf(i) === -1) continue;
 
-                    if(data[i]===null){
+                    if (data[i] === null) {
 
                         lS.removeItem(i)
 
-                    }else{
+                    } else {
 
                         lS[i] = data[i]
 
@@ -330,7 +327,7 @@
 
         var dom = frame.contentDocument;
 
-        dom.write(['<script>var after =',after,',before =',before,';(',frameScript.toString(),')(',JSON.stringify(config),');</script>'].join(''));
+        dom.write(['<script>var after =', after, ',before =', before, ';(', frameScript.toString(), ')(', JSON.stringify(config), ');</script>'].join(''));
 
         dom.close();
 
