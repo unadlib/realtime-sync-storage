@@ -1,7 +1,7 @@
 //     rsStorage.js 0.0.1
 //     https://unadlib.github.io
 //     (c) 2016 unadlib, DocumentCloud and Investigative Reporters & Editors
-//     Underscore may be freely distributed under the MIT license.
+//     rsStorage.js may be freely distributed under the MIT license.
 
 (function (global, doc, factory) {
 
