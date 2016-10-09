@@ -3,6 +3,7 @@ Cross-origin local storage realtime synchronizing.
 ## Supported
 * IE(8+)
 * multi-site
+* Safari isn't supported
 
 ## Install
 #### [Bower](http://bower.io/search/?q=realtime-sync-storage)
