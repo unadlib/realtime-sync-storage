@@ -1,4 +1,4 @@
-//     rsStorage.js 0.0.1
+//     rsStorage.js 0.2.4
 //     https://unadlib.github.io
 //     (c) 2016 unadlib, DocumentCloud and Investigative Reporters & Editors
 //     rsStorage.js may be freely distributed under the MIT license.

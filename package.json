@@ -1,6 +1,6 @@
 {
   "name": "realtime-sync-storage",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Cross-origin local storage realtime synchronizing.",
   "main": "index.js",
   "scripts": {
